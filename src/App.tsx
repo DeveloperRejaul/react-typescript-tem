@@ -8,6 +8,7 @@ import { useToken } from "./hooks/useToken";
 
 
 const BLUE_COLOR:string = useToken('colors', 'blue700');
+
 const data = [
   'https://i.ibb.co/FJKrV0m/motorcycle-png-20320.png',
   'https://i.ibb.co/RSrb8tm/motorcycles-icon-png-2710.png',
@@ -40,14 +41,12 @@ function HeaderRightButton () {
 
 function Card ({title, price, icon}: ICardProps) {
   return (
-    <div className='h-28 w-40 bg-white rounded-lg shadow-sm p-2 px-4 mx-4 my-4'>
-      <div className='justify-between items-center flex-1'>
+      <div className='flex justify-between items-center h-28 w-40 bg-white rounded-lg shadow-sm p-2 px-4 mx-4 my-4'>
         <div>
           <p className='text-black text-sm font-medium'>{title}</p>
           <p className='text-black text-lg font-bold'>{price}</p>
         </div>
         {icon}
-      </div>
     </div>
   );
 }
