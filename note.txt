@@ -1,0 +1,3 @@
+// ganache start command line for web3
+
+ganache -a 10 -m "gift metal canal usual imitate exotic bounce cheese attend flip city market" -p 6060 
