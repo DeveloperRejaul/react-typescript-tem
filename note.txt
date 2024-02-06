@@ -1,3 +1,13 @@
 // ganache start command line for web3
 
 ganache -a 10 -m "gift metal canal usual imitate exotic bounce cheese attend flip city market" -p 6060 
+
+
+// key info
+Contract deployment: BikeChain
+Contract address:    0x5fbdb2315678afecb367f032d93f642f64180aa3
+Transaction:         0x003da8ec14bbf75815be75d7d3866bc909b4029f9c6d1632848e90b2a7905225
+From:                0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+Value:               0 ETH
+Gas used:            1527989 of 30000000
+Block #1:            0x32df61ab7e79be51b3a386fb9c926e2afe27314b5786a5ec8437082609dc7ac7

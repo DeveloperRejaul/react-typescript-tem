@@ -4,6 +4,7 @@ import CreditIcon from "./assets/icon/CreditIcon";
 import MetamaskIcon from "./assets/icon/MetamaskIcon";
 import MonyIcon from "./assets/icon/MonyIcon";
 import Button from "./components/button/Button";
+import { useBlockChainContext } from "./hooks/useBlockChainContext";
 import { useToken } from "./hooks/useToken";
 
 
@@ -22,42 +23,15 @@ interface ICardProps {
 }
 
 
-function HeaderLeftTitle () {
-  return (
-    <div className='flex flex-row' style={{paddingLeft:20}}>
-      <p className='text-blue600 font-bold text-2xl '>Bike</p>
-      <p className='text-blue400 font-bold text-2xl '>Chain</p>
-    </div>
-  );
-}
-
-function HeaderRightButton () {
-  return (
-    <div style={{paddingRight:20}}>
-      <Button text='Metamask ID' className='px-2 bg-blue300 hover:bg-blue200' textStyle={{color:useToken('colors','blue900')}} leftIcon={<MetamaskIcon className='mr-2' />} />
-    </div>
-  );
-}
-
-function Card ({title, price, icon}: ICardProps) {
-  return (
-      <div className='flex justify-between items-center h-28 w-40 bg-white rounded-lg shadow-sm p-2 px-4 mx-4 my-4'>
-        <div>
-          <p className='text-black text-sm font-medium'>{title}</p>
-          <p className='text-black text-lg font-bold'>{price}</p>
-        </div>
-        {icon}
-    </div>
-  );
-}
-
 export default function App() {
+  
+ const {connectWallet} = useBlockChainContext()
 
   return (
       <div className="h-screen overflow-hidden">
           <div className="flex justify-between py-3 shadow-md">
             <HeaderLeftTitle/>
-            <HeaderRightButton/>
+            <HeaderRightButton onPress={connectWallet}/>
           </div>  
       <div className='overflow-y-scroll px-6 h-[90%]'>
         <div className='flex self-end py-5'>
@@ -104,5 +78,38 @@ export default function App() {
         </div>
       </div>
       </div>
+  );
+}
+
+
+
+
+function HeaderLeftTitle () {
+  return (
+    <div className='flex flex-row' style={{paddingLeft:20}}>
+      <p className='text-blue600 font-bold text-2xl '>Bike</p>
+      <p className='text-blue400 font-bold text-2xl '>Chain</p>
+    </div>
+  );
+}
+
+function HeaderRightButton ({onPress}:{onPress:()=>void}) {
+  const {currentAccount} = useBlockChainContext ()
+  return (
+    <div style={{paddingRight:20}}>
+      <Button onPress={onPress} text={ currentAccount ? `${currentAccount.slice(0,5)} ... ${currentAccount.slice(currentAccount.length-4)}`  :"Connect Wallet"} className='px-2 w-48 bg-blue300 hover:bg-blue200' textStyle={{color:useToken('colors','blue900')}} leftIcon={<MetamaskIcon className='mr-2' />} />
+    </div>
+  );
+}
+
+function Card ({title, price, icon}: ICardProps) {
+  return (
+      <div className='flex justify-between items-center h-28 w-40 bg-white rounded-lg shadow-sm p-2 px-4 mx-4 my-4'>
+        <div>
+          <p className='text-black text-sm font-medium'>{title}</p>
+          <p className='text-black text-lg font-bold'>{price}</p>
+        </div>
+        {icon}
+    </div>
   );
 }
