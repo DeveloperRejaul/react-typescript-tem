@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 contract BikeChain {
     
     address owner;
+    uint ownerBalance;
+
     constructor() {
         owner = msg.sender;
     }
@@ -28,8 +30,18 @@ contract BikeChain {
         renters[walletAddress] = Renter(walletAddress, fristName, lastName, canRent, active, balance, due, start, end);
     }
 
+    modifier isRenter(address walletAddress) {
+        require(msg.sender == walletAddress, "You can only manage your account");
+        _;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "You are not allowed to access this");
+        _;
+    }
+
     // chexkout bike 
-    function checkOut (address walletAddress)public   {
+    function checkOut (address walletAddress)public isRenter(walletAddress)   {
         require(renters[walletAddress].due == 0 , "You have panding balance ");
         require(renters[walletAddress].canRent == true , "Can rent at this time ");
         renters[walletAddress].active = true; 
@@ -37,8 +49,8 @@ contract BikeChain {
         renters[walletAddress].canRent = false;
     }
 
-     // chexkin bike 
-     function checkinBike (address walletAddress) public  {
+     // chexk in a bike 
+     function checkIn (address walletAddress) public isRenter(walletAddress)  {
         require(renters[walletAddress].active == false , "Please checkout a bike first");
         renters[walletAddress].active = false;
         renters[walletAddress].end = block.timestamp;
@@ -53,7 +65,7 @@ contract BikeChain {
     }
 
     // get total duration bike use 
-    function getTotalDuration(address walletAddress) public view  returns (uint) {
+    function getTotalDuration(address walletAddress) public isRenter(walletAddress) view  returns (uint) {
         if(renters[walletAddress].start == 0 || renters[walletAddress].end == 0){
             return 0;
         } else {
@@ -64,13 +76,21 @@ contract BikeChain {
     }
 
     // get contract balance 
-    function balanceOf () view  public returns(uint) {
+    function balanceOf () view  public onlyOwner() returns(uint) {
         return  address(this).balance;
     }
 
+    function getOwnerBalance() view public onlyOwner() returns(uint) {
+        return ownerBalance;
+    }
+
     // get Renters balance 
-    function balanceOfRenters (address walletAddress) public  view  returns (uint){
+    function balanceOfRenter (address walletAddress) public isRenter(walletAddress)   view  returns (uint){
         return renters[walletAddress].balance;
+    }
+
+    function withdrawOwnerBalance() payable public {
+        payable(owner).transfer(ownerBalance);
     }
 
     // Set Due Amount 
@@ -81,26 +101,49 @@ contract BikeChain {
     }
 
 
-    function canRentBike (address walletAddress) public  view  returns (bool){
+    function canRentBike (address walletAddress) public isRenter(walletAddress)  view  returns (bool){
         return renters[walletAddress].canRent;
     }
 
 
     // deposit 
-    function deposit (address walletAddress) payable  public  {
+    function deposit (address walletAddress) isRenter(walletAddress) payable  public  {
         renters[walletAddress].balance +=msg.value;
     }
 
-    // make payments
-    function makePayment (address walletAddress) payable  public {
-        require(renters[walletAddress].due > 0 , "You don't have any deo at this time");
-        require(renters[walletAddress].balance > msg.value , "You don't have anough founds to cover payment. please make a deposit .");
+    // Make Payment
+    function makePayment(address walletAddress, uint amount) public isRenter(walletAddress) {
+        require(renters[walletAddress].due > 0, "You do not have anything due at this time.");
+        require(renters[walletAddress].balance > amount, "You do not have enough funds to cover payment. Please make a deposit.");
+        
+        renters[walletAddress].balance -= amount;
+        ownerBalance += amount;
+        renters[walletAddress].canRent = true;
+        renters[walletAddress].due = 0;
+        renters[walletAddress].start = 0;
+        renters[walletAddress].end = 0;
+    }
 
-        renters[walletAddress].balance -=msg.value;
-        renters[walletAddress].canRent =true;
-        renters[walletAddress].due =0;
-        renters[walletAddress].start =0;
-        renters[walletAddress].end =0;
 
+    function getDue(address walletAddress) public isRenter(walletAddress) view returns(uint) {
+        return renters[walletAddress].due;
+    }
+
+    function getRenter(address walletAddress) public isRenter(walletAddress) view returns(string memory fristName, string memory lastName, bool canRent, bool active) {
+        fristName = renters[walletAddress].fristName;
+        lastName = renters[walletAddress].lastName;
+        canRent = renters[walletAddress].canRent;
+        active = renters[walletAddress].active;
+    }
+
+    function renterExists(address walletAddress) public isRenter(walletAddress) view returns(bool) {
+        if (renters[walletAddress].walletAddress != address(0)) {
+            return true;
+        }
+        return false;
     }
 }
+
+
+
+
