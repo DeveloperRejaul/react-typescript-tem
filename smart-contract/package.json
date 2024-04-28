@@ -1,0 +1,16 @@
+{
+  "name": "smart-contract",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "c": "npx hardhat compile",
+    "n": "npx hardhat node",
+    "dl": "npx hardhat ignition deploy ./ignition/modules/Lock.ts --network localhost",
+    "d": "npx hardhat ignition deploy ./ignition/modules/Lock.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.3"
+  }
+}

@@ -1,13 +1,4 @@
-// ganache start command line for web3
-
-ganache -a 10 -m "gift metal canal usual imitate exotic bounce cheese attend flip city market" -p 6060 
-
-
-// key info
-Contract deployment: BikeChain
-Contract address:    0x5fbdb2315678afecb367f032d93f642f64180aa3
-Transaction:         0x47647dabb8c08af4a792e316b4ffbd72e828b8d96565d45d4ce758626bcaa8df
-From:                0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
-Value:               0 ETH
-Gas used:            2199097 of 30000000
-Block #1:            0x2bc86434da0cefd8c294ea89577d1990c396fcb8c0cfab95818c3bc89fdfbe09
+"c": "npx hardhat compile",
+"d": "npx hardhat ignition deploy ./ignition/modules/Lock.ts",
+"n": "npx hardhat node",
+"dnl": "npx hardhat ignition deploy ./ignition/modules/Lock.ts --network localhost"
