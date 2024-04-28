@@ -9,7 +9,16 @@ function App() {
 
   useEffect(() => {
     const init = async () => {
+      const signer = await provider.getSigner();
+      const newContract = new Contract("0x5FbDB2315678afecb367f032d93F642f64180aa3", MainAbi.abi, signer)
+
       console.log(await contract.addNumbers(1, 1));
+      console.log(await contract.getter());
+
+      const transaction = await newContract.setter("hello world");
+      await transaction.wait();
+
+      console.log(await contract.getter());
     }
     init()
   }, [])
