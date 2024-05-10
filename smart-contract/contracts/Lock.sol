@@ -6,18 +6,31 @@ pragma solidity ^0.8.24;
 
 contract Lock {
 
-    string private str = "";
+   address public owner;
+   address payable [] public players;
+   address payable public winwer;
 
-    function setter (string memory _str) public {
-        str=_str;
-    }
-
-    function getter () public view  returns (string memory){
-        return str;
-    }
+   constructor(){
+    owner = msg.sender;
+   }
 
 
-    function addNumbers (uint num1, uint num2) pure public returns(uint) {
-        return num1 + num2;
-    }
+   function prticipate () public payable {
+        require(msg.sender != owner, "owner can't prticipate");
+        require(msg.value == 1 ether, "1 eth required for prticipate");
+        players.push(payable(msg.sender));
+   }
+
+
+   function getBalance() public view returns(uint) {
+    require(msg.sender == owner, "owner can only get balance");
+    return address(this).balance;
+   }
+
+   function makeWinwer() public {
+     require(msg.sender == owner, "owner can only makeWinwer");
+     require(players.length >= 3, "requires at least 3 players");
+     winwer=players[0];
+     winwer.transfer(getBalance());
+   }
 }
