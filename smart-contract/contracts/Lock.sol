@@ -6,31 +6,41 @@ pragma solidity ^0.8.24;
 
 contract Lock {
 
+   struct Player {
+      string name;
+      address payable addr;
+    }
+
    address public owner;
-   address payable [] public players;
-   address payable public winwer;
+   Player[] public players;
+   Player public winner;
 
    constructor(){
     owner = msg.sender;
    }
 
 
-   function prticipate () public payable {
-        require(msg.sender != owner, "owner can't prticipate");
-        require(msg.value == 1 ether, "1 eth required for prticipate");
-        players.push(payable(msg.sender));
+   function participate (string memory name) public payable {
+        require(msg.sender != owner, "owner can't participate");
+        require(msg.value == 1 ether, "1 eth required for participate");
+        players.push(Player(name,payable(msg.sender)));
    }
 
 
    function getBalance() public view returns(uint) {
-    require(msg.sender == owner, "owner can only get balance");
     return address(this).balance;
    }
 
-   function makeWinwer() public {
-     require(msg.sender == owner, "owner can only makeWinwer");
+   function makeWinner() public {
+     require(msg.sender == owner, "owner can only make Winner");
      require(players.length >= 3, "requires at least 3 players");
-     winwer=players[0];
-     winwer.transfer(getBalance());
+     uint index = uint256(keccak256(abi.encodePacked(block.timestamp)))%players.length;
+     winner=players[index];
+     winner.addr.transfer(getBalance());
+     delete  players;
+   }
+
+   function getParticipates () public view  returns (Player[] memory) {
+    return  players;
    }
 }
