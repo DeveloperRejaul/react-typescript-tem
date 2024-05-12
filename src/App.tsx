@@ -1,91 +1,130 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Contract, BrowserProvider, ethers } from "ethers"
-import { MainAbi } from "./abis/abis"
+import { Contract, BrowserProvider, ethers, JsonRpcSigner } from "ethers"
+import { MAIN_ABI, CONTRACT_ADDRESS } from "./constants/web3"
 import { useEffect, useState } from "react"
 import Header from "./components/header/header";
-import { JsonRpcSigner } from "ethers";
+import { createWeb3Modal, defaultConfig, useWeb3Modal, useWeb3ModalProvider, useWeb3ModalAccount, useDisconnect } from '@web3modal/ethers/react';
 
 
-interface IWindow extends Window {
-  ethereum?: any
-}
 interface IParticipants {
   name?: string;
   addr?: string;
 }
 
+interface IWindow extends Window {
+  ethereum?: any
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const newWindow: IWindow = window;
+
+// 1. Get projectId
+const projectId = 'fd72a76967ba46cdfeb67b2c6de4b821';
+
+
+// 2. Set chains
+const mainnet = {
+  chainId: 31337,
+  name: 'localhost', // 'Ethereum',
+  currency: 'ETH',
+  explorerUrl: 'https://etherscan.io',
+  rpcUrl: 'http://localhost:8545', // 'https://cloudflare-eth.com'
+}
+
+// 3. Create a metadata object
+const metadata = {
+  name: 'My Website',
+  description: 'My Website description',
+  url: 'https://mywebsite.com', // origin must match your domain & subdomain
+  icons: ['https://avatars.mywebsite.com/']
+}
+
+
+// 4. Create Ethers config
+const ethersConfig = defaultConfig({
+  /*Required*/
+  metadata,
+
+  /*Optional*/
+  // enableEIP6963: true, // true by default
+  // enableInjected: true, // true by default
+  // enableCoinbase: true, // true by default
+  // rpcUrl: 'http://localhost:8545', // used for the Coinbase SDK
+  // defaultChainId: 31337, // used for the Coinbase SDK
+})
+
+// 5. Create a Web3Modal instance
+createWeb3Modal({
+  ethersConfig,
+  chains: [mainnet],
+  projectId,
+  enableAnalytics: true // Optional - defaults to your Cloud configuration
+})
 
 
 function App() {
+  const { open, } = useWeb3Modal()
+  const { walletProvider } = useWeb3ModalProvider()
+  const { isConnected } = useWeb3ModalAccount()
+  const { disconnect } = useDisconnect()
 
-  const [readContract, setReadContract] = useState<Contract>();
-  const [writeContract, setWriteContract] = useState<Contract>();
-  const [connected, setConnect] = useState(false);
+  const [contract, setContract] = useState<Contract>();
   const [account, setAccount] = useState<JsonRpcSigner>()
 
   const [balance, setBalance] = useState<string>("0");
   const [winner, setWinner] = useState<IParticipants>();
   const [participants, setParticipants] = useState<IParticipants[]>([])
 
+
   useEffect(() => {
+    if (!isConnected) return console.log('User disconnected');
+    if (walletProvider == undefined) return console.log("Provider not found");
 
     newWindow.ethereum?.on("accountsChanged", async () => {
-      const _provider = new BrowserProvider(newWindow.ethereum);
-      const accounts = await _provider?.listAccounts();
-      if (accounts.length <= 0) {
-        setAccount(accounts[0])
-      }
-      connectWallet()
-    });
-
-    const init = async () => {
-      if (!newWindow.ethereum) return
-      const _provider = new BrowserProvider(newWindow.ethereum);
-      const accounts = await _provider?.listAccounts();
-      if (accounts.length <= 0) {
-        setConnect(false)
-      } else {
-        setConnect(true);
-        setAccount(accounts[0])
-        connectWallet()
-      }
-    }
-    init()
+      const ethersProvider = new BrowserProvider(walletProvider)
+      const signer = await ethersProvider.getSigner()
+      setAccount(signer)
+    })
   }, [])
 
+
   useEffect(() => {
-    if (readContract && writeContract) {
+
+    async function init() {
+      if (!isConnected) return console.log('User disconnected');
+      if (walletProvider == undefined) return console.log("Provider not found");
+
+      const ethersProvider = new BrowserProvider(walletProvider)
+      const signer = await ethersProvider.getSigner()
+      const _contract = new Contract(CONTRACT_ADDRESS, MAIN_ABI.abi, account || signer);
+      setContract(_contract)
+    }
+
+    if (isConnected) init()
+  }, [isConnected, account])
+
+  useEffect(() => {
+    if (contract) {
       getBalance()
       getAllParticipants()
       getWinner()
     }
-  }, [readContract, writeContract])
+  }, [contract]);
 
-  async function connectWallet() {
-    if (!newWindow.ethereum) return
-    const _provider = new BrowserProvider(newWindow.ethereum);
-    const _readContract = new Contract("0x5FbDB2315678afecb367f032d93F642f64180aa3", MainAbi.abi, _provider);
-    setReadContract(_readContract)
-    const signer = await _provider.getSigner()
-    const _writeContract = new Contract("0x5FbDB2315678afecb367f032d93F642f64180aa3", MainAbi.abi, account || signer)
-    setWriteContract(_writeContract);
-    setConnect(true)
-  }
 
 
   async function getBalance() {
-    const _balance = await readContract?.getBalance();
+    const _balance = await contract?.getBalance();
     setBalance(ethers.formatEther(_balance));
   }
 
   async function getWinner() {
-    const _winner = await readContract?.winner();
+    const _winner = await contract?.winner();
     setWinner(_winner);
   }
 
   async function makeWinner() {
-    const tx = await writeContract?.makeWinner();
+    const tx = await contract?.makeWinner();
     await tx.wait();
     getWinner()
     getBalance()
@@ -95,21 +134,21 @@ function App() {
 
 
   async function makeParticipate() {
-    const tx = await writeContract?.participate("Kamal Mia", { value: ethers.parseEther("1.0") });
+    const tx = await contract?.participate("Kamal Mia", { value: ethers.parseEther("1.0") });
     await tx.wait();
     getAllParticipants()
     getBalance()
   }
 
   async function getAllParticipants() {
-    const players = await readContract?.getParticipates();
+    const players = await contract?.getParticipates();
     setParticipants(players);
   }
 
 
   return (
     <div >
-      <Header onClick={connectWallet} text={connected ? "Disconnect" : "Connect"} />
+      <Header onClick={isConnected ? () => disconnect() : () => open()} text={isConnected ? "Disconnect" : "Connect"} />
       <div className="px-5 py-4">
 
         <div className="flex space-x-2 justify-center py-6">
@@ -140,13 +179,13 @@ function App() {
           </div>
 
           {/* Winner */}
-          <div className="w-[20rem] bg-pink300 rounded-lg px-2 pt-4 pb-8">
+          <div className="w-[20rem] bg-pink300 rounded-lg px-2 pt-4 pb-8 h-28">
             <div className="text-center font-bold text-xl text-violet500">Winner</div>
             <div className="flex items-center space-x-2">
-              <div className="h-10 w-10 rounded-full bg-warmGray300" />
+              {winner && <div className="h-10 w-10 rounded-full bg-warmGray300" />}
               <div>
-                <p className="font-semibold text-lg text-warmGray700">{winner?.name}</p>
-                <p className="font-semibold text-lg text-warmGray700">{winner?.addr?.slice(0, 12)}...{winner?.addr?.slice(winner?.addr?.length - 5, winner?.addr?.length)}</p>
+                {winner && <p className="font-semibold text-lg text-warmGray700">{winner?.name}</p>}
+                {winner && <p className="font-semibold text-lg text-warmGray700">{winner?.addr?.slice(0, 12)}...{winner?.addr?.slice(winner?.addr?.length - 5, winner?.addr?.length)}</p>}
               </div>
             </div>
           </div>
