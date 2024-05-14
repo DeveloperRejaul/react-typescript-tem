@@ -4,6 +4,11 @@ import { MAIN_ABI, CONTRACT_ADDRESS } from "./constants/web3"
 import { useEffect, useState } from "react"
 import Header from "./components/header/header";
 import { createWeb3Modal, defaultConfig, useWeb3Modal, useWeb3ModalProvider, useWeb3ModalAccount, useDisconnect } from '@web3modal/ethers/react';
+import Card from "./components/card/Card";
+import Button from "./components/button/Button";
+import CreditIcon from "./assets/icon/CreditIcon";
+import MonyIcon from "./assets/icon/MonyIcon";
+import ClockIcon from "./assets/icon/ClockIcon";
 
 
 interface IParticipants {
@@ -134,7 +139,7 @@ function App() {
 
 
   async function makeParticipate() {
-    const tx = await contract?.participate("Kamal Mia", { value: ethers.parseEther("1.0") });
+    const tx = await contract?.participate("User Name", { value: ethers.parseEther("1.0") });
     await tx.wait();
     getAllParticipants()
     getBalance()
@@ -150,46 +155,19 @@ function App() {
     <div >
       <Header onClick={isConnected ? () => disconnect() : () => open()} text={isConnected ? "Disconnect" : "Connect"} />
       <div className="px-5 py-4">
-
-        <div className="flex space-x-2 justify-center py-6">
-          <p className="text-xl text-warmGray600">Balance:</p>
-          <p className="text-xl text-warmGray600">{balance} Eth</p>
+        <div className="flex justify-center">
+          <Card price={200} title="Total Balance" icon={<CreditIcon size={40} />} />
+          <Card price={200} title="Deposited" icon={<MonyIcon size={40} />} />
+          <Card price={200} title="Total Duration" icon={<ClockIcon size={40} />} />
         </div>
-
-        <div className="flex space-x-7 justify-center py-6">
-          <div className="cursor-pointer text-trueGray800 font-semibold bg-indigo500 px-3 py-1 rounded-md" onClick={makeParticipate}> Participate </div>
-          <div className="cursor-pointer text-trueGray800 font-semibold bg-indigo500 px-3 py-1 rounded-md" onClick={makeWinner}> Make Winner </div>
+        <div className="flex justify-center space-x-3">
+          <Button text="Deposit" onPress={() => { }} className="px-4" />
+          <input type="number" name="deposit" id="deposit" className="border border-warmGray400 rounded-md text-center" />
         </div>
-
-        <div className="flex space-x-7 justify-center">
-          {/* Participant */}
-          <div className="w-[20rem] bg-pink300 rounded-lg px-2 pt-4 pb-8">
-            <h1 className="text-center font-bold text-xl text-violet500">Participant</h1>
-            <div className="space-y-2 max-h-[12rem] overflow-y-auto">
-              {participants.map((e, i) => (
-                <div key={i} className="flex items-center space-x-2">
-                  <div className="h-10 w-10 rounded-full bg-warmGray300" />
-                  <div >
-                    <p className="font-semibold text-lg text-warmGray700">{e?.name}</p>
-                    <p className="font-semibold text-lg text-warmGray700">{e?.addr?.slice(0, 12)}...{e?.addr?.slice(e?.addr?.length - 5, e?.addr?.length)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Winner */}
-          <div className="w-[20rem] bg-pink300 rounded-lg px-2 pt-4 pb-8 h-28">
-            <div className="text-center font-bold text-xl text-violet500">Winner</div>
-            <div className="flex items-center space-x-2">
-              {winner && <div className="h-10 w-10 rounded-full bg-warmGray300" />}
-              <div>
-                {winner && <p className="font-semibold text-lg text-warmGray700">{winner?.name}</p>}
-                {winner && <p className="font-semibold text-lg text-warmGray700">{winner?.addr?.slice(0, 12)}...{winner?.addr?.slice(winner?.addr?.length - 5, winner?.addr?.length)}</p>}
-              </div>
-            </div>
-          </div>
-
+        <div className="flex justify-center mt-10">
+          <p>Bike 01</p>
+          <p>Bike 02</p>
+          <p>Bike 03</p>
         </div>
       </div>
     </div>
